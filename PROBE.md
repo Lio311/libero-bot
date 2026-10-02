@@ -48,3 +48,4 @@
 | perfumery.co.il | — | — | ❌ | דומיין שפג ("Expired DNS Hosting") |
 
 - WooCommerce: מוצר variable מוחלף בווריאציות שלו (`?type=variation`), כי המחיר של האב הוא רק הזול מביניהן. חל גם על lolaray / perfumecenter / kolboyehuda.
+- הרצה ראשונה ב-GitHub Actions (2026-10-02): 22 אתרים עברו. **סופר-פארם** (עמוד בלי מוצרים), **Blendo**, **Mary Shop** ו**לילית** (HTTP 403) חוסמים את כתובות ה-IP של GitHub, ולכן הם מושהים (`paused: true`). ביונד סקין, על אותה פלטפורמה כמו לילית, עבר.

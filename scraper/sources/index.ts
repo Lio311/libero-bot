@@ -1,4 +1,4 @@
-import { SOURCES } from "../../src/lib/config";
+import { SOURCE_KEYS, SOURCES } from "../../src/lib/config";
 import type { Source } from "../types";
 import { idusSource } from "./idus";
 import { jonathanSource } from "./jonathan";
@@ -12,7 +12,7 @@ import { wooSource } from "./woo";
 // even on the home page), and the project avoids paid scraping services. individualperfumes.com,
 // laperfume.co.il and almapharm.co.il don't resolve; perfumery.co.il is an expired domain.
 
-export const ALL_SOURCES: Source[] = [
+const SCRAPERS: Source[] = [
   shopifySource("mist", SOURCES.mist.url),
   shopifySource("molecule", SOURCES.molecule.url),
   wooSource("lolaray", SOURCES.lolaray.url),
@@ -69,3 +69,6 @@ export const ALL_SOURCES: Source[] = [
   sfccSource("onlys", SOURCES.onlys.url, "onlys", "PERFUME"),
   jonathanSource(),
 ];
+
+/** Every scraper except the sites paused in SOURCES (see SOURCE_KEYS). */
+export const ALL_SOURCES = SCRAPERS.filter((s) => SOURCE_KEYS.includes(s.key));

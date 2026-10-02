@@ -28,20 +28,20 @@ export const SOURCES = {
   kolboyehuda: { name: "Kolbo Yehuda", he: "כלבו יהודה", url: "https://kolboyehuda.co.il", color: "var(--site-kolboyehuda)" },
   odem: { name: "Odem", he: "אודם", url: "https://www.odemc.co.il", color: "var(--site-odem)" },
   novopharm: { name: "Novo Pharm", he: "נובו פארם", url: "https://www.novo-pharm.co.il", color: "var(--site-novopharm)" },
-  superpharm: { name: "Super-Pharm", he: "סופר-פארם", url: "https://shop.super-pharm.co.il", color: "var(--site-superpharm)" },
+  superpharm: { name: "Super-Pharm", he: "סופר-פארם", url: "https://shop.super-pharm.co.il", color: "var(--site-superpharm)", paused: true },
   myperfume: { name: "My Perfume", he: "מיי פרפיום", url: "https://www.myperfume.co.il", color: "var(--site-myperfume)" },
   callperfume: { name: "Call Perfume", he: "קול פרפיום", url: "https://callperfume.co.il", color: "var(--site-callperfume)" },
   perfumex: { name: "Perfumex", he: "פרפיומקס", url: "https://www.perfumex.co.il", color: "var(--site-perfumex)" },
   motagim: { name: "Beauty Shop Motagim", he: "ביוטי שופ מותגים", url: "https://www.beautyshopmotagim.co.il", color: "var(--site-motagim)" },
   perfumeclub: { name: "Perfume Club", he: "פרפיום קלאב", url: "https://perfumeclub.co.il", color: "var(--site-perfumeclub)" },
-  blendo: { name: "Blendo", he: "בלנדו", url: "https://blendo.co.il", color: "var(--site-blendo)" },
+  blendo: { name: "Blendo", he: "בלנדו", url: "https://blendo.co.il", color: "var(--site-blendo)", paused: true },
   oligarch: { name: "Oligarch", he: "אוליגרך", url: "https://oligarch.co.il", color: "var(--site-oligarch)" },
   jonathan: { name: "Jonathan", he: "ג'ונתן", url: "https://www.jonathan.co.il", color: "var(--site-jonathan)" },
   lovenmour: { name: "Love n' Mour", he: "לאב אנד מור", url: "https://www.lovenmour.co.il", color: "var(--site-lovenmour)" },
   perfumeil: { name: "Perfume IL", he: "פרפיום IL", url: "https://www.perfumeil.co.il", color: "var(--site-perfumeil)" },
-  lilit: { name: "Lilit", he: "לילית", url: "https://www.lilit.co.il", color: "var(--site-lilit)" },
+  lilit: { name: "Lilit", he: "לילית", url: "https://www.lilit.co.il", color: "var(--site-lilit)", paused: true },
   chozen: { name: "Chozen", he: "צ'וזן", url: "https://chozen.co.il", color: "var(--site-chozen)" },
-  maryshop: { name: "Mary Shop", he: "מרי שופ", url: "https://maryshop.co.il", color: "var(--site-maryshop)" },
+  maryshop: { name: "Mary Shop", he: "מרי שופ", url: "https://maryshop.co.il", color: "var(--site-maryshop)", paused: true },
   beyondskin: { name: "Beyond Skin", he: "ביונד סקין", url: "https://www.beyondskin.co.il", color: "var(--site-beyondskin)" },
   glam42: { name: "Glam42", he: "גלאם 42", url: "https://glam42.co.il", color: "var(--site-glam42)" },
   mashbir: { name: "Mashbir 365", he: "המשביר 365", url: "https://365mashbir.co.il", color: "var(--site-mashbir)" },
@@ -51,7 +51,12 @@ export const SOURCES = {
 
 export type SourceKey = keyof typeof SOURCES;
 
-export const SOURCE_KEYS = Object.keys(SOURCES) as SourceKey[];
+/**
+ * Sites in the nightly scan and on the dashboard. A `paused` site keeps its scraper but is skipped:
+ * Super-Pharm, Blendo, Lilit and Mary Shop answer from a home connection but block GitHub's
+ * servers (403 / empty page, 2026-10-02). Delete `paused: true` to bring one back.
+ */
+export const SOURCE_KEYS = (Object.keys(SOURCES) as SourceKey[]).filter((k) => !("paused" in SOURCES[k]));
 
 /** Libero's own store (WooCommerce REST v3 with keys). */
 export const LIBERO_NAME = "ליברו";
