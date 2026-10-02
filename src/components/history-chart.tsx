@@ -6,9 +6,10 @@ import type { HistoryPoint } from "@/lib/data";
 import { ils } from "@/lib/format";
 import { siteColor, siteName } from "./ui";
 
-// Libero's price and every competitor site's price, one point per daily snapshot (in-stock days
-// only, so a sold-out stretch is a gap in that site's line). One axis, all in shekels.
-// Libero is the heavy ink line; each site keeps its fixed colour. Legend entries toggle a site.
+// Libero's price and every competitor site's price, one point per daily snapshot. One axis, all in
+// shekels. Sold-out days stay on the chart but read as such: hollow dot, dashed line. A day the
+// site had no listing at all is a gap. Libero is the heavy ink line; each site keeps its fixed
+// colour. Legend entries toggle a site.
 
 const H = 200;
 const PAD = { top: 12, right: 14, bottom: 24, left: 52 };
@@ -28,6 +29,7 @@ function niceTicks(lo: number, hi: number, count = 4) {
 }
 
 const valueOf = (p: HistoryPoint, key: string) => (key === LIBERO ? p.libero : (p.prices[key] ?? null));
+const isOut = (p: HistoryPoint, key: string) => key !== LIBERO && p.out.includes(key);
 
 export function HistoryChart({ points }: { points: HistoryPoint[] }) {
   const wrap = useRef<HTMLDivElement>(null);
@@ -45,7 +47,7 @@ export function HistoryChart({ points }: { points: HistoryPoint[] }) {
     return () => ro.disconnect();
   }, []);
 
-  // Sites that ever had an in-stock price for this product, in the fixed site order (stable colours).
+  // Sites that ever had a price for this product, in the fixed site order (stable colours).
   const sites = useMemo(() => SOURCE_KEYS.filter((k) => points.some((p) => p.prices[k] != null)), [points]);
   const series = useMemo(() => [LIBERO, ...sites.filter((s) => !hidden.has(s))], [sites, hidden]);
 
@@ -66,19 +68,20 @@ export function HistoryChart({ points }: { points: HistoryPoint[] }) {
 
   if (!points.length) return <p className="py-6 text-center text-[13px] text-muted">אין עדיין היסטוריה למוצר הזה.</p>;
 
-  const path = (key: string) => {
-    let d = "";
-    let pen = false;
+  /** Line segments between consecutive days that both have a price; dashed when either day was sold out. */
+  const paths = (key: string) => {
+    let solid = "";
+    let dashed = "";
     points.forEach((p, i) => {
-      const v = valueOf(p, key);
-      if (v == null) {
-        pen = false;
-        return;
-      }
-      d += `${pen ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`;
-      pen = true;
+      if (!i) return;
+      const a = valueOf(points[i - 1], key);
+      const b = valueOf(p, key);
+      if (a == null || b == null) return;
+      const seg = `M${x(i - 1).toFixed(1)},${y(a).toFixed(1)}L${x(i).toFixed(1)},${y(b).toFixed(1)}`;
+      if (isOut(points[i - 1], key) || isOut(p, key)) dashed += seg;
+      else solid += seg;
     });
-    return d;
+    return { solid, dashed };
   };
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -103,6 +106,7 @@ export function HistoryChart({ points }: { points: HistoryPoint[] }) {
   const showDots = points.length < 20;
   const colorOf = (k: string) => (k === LIBERO ? "var(--fg)" : siteColor(k));
   const last = points[points.length - 1];
+  const anyOut = points.some((p) => sites.some((s) => isOut(p, s)));
   // Draw sites first, Libero last so it sits on top.
   const drawOrder = [...series.filter((k) => k !== LIBERO), LIBERO];
 
@@ -123,7 +127,11 @@ export function HistoryChart({ points }: { points: HistoryPoint[] }) {
           </button>
         ))}
       </div>
-      {points.length < 3 && <p className="mb-1 text-[12px] text-faint">הקווים יתמלאו עם כל סריקה יומית.</p>}
+      {(points.length < 3 || anyOut) && (
+        <p className="mb-1 text-[12px] text-faint">
+          {[points.length < 3 && "הקווים יתמלאו עם כל סריקה יומית.", anyOut && "נקודה חלולה / קו מקווקו = אזל במלאי באותו יום."].filter(Boolean).join(" ")}
+        </p>
+      )}
       <div dir="ltr">
         <svg
           width={width}
@@ -154,30 +162,29 @@ export function HistoryChart({ points }: { points: HistoryPoint[] }) {
             ) : null,
           )}
           {hp && <line x1={x(hover!)} x2={x(hover!)} y1={PAD.top} y2={H - PAD.bottom} stroke="var(--border-strong)" strokeWidth={1} />}
-          {drawOrder.map((k) => (
-            <path
-              key={k}
-              d={path(k)}
-              fill="none"
-              stroke={colorOf(k)}
-              strokeWidth={k === LIBERO ? 2.75 : 2}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
-          ))}
+          {drawOrder.map((k) => {
+            const { solid, dashed } = paths(k);
+            return (
+              <g key={k} fill="none" stroke={colorOf(k)} strokeLinejoin="round" strokeLinecap="round">
+                {dashed && <path d={dashed} strokeWidth={1.5} strokeDasharray="3 4" opacity={0.7} />}
+                {solid && <path d={solid} strokeWidth={k === LIBERO ? 2.75 : 2} />}
+              </g>
+            );
+          })}
           {drawOrder.map((k) =>
             points.map((p, i) => {
               const v = valueOf(p, k);
               if (v == null || !(showDots || hover === i)) return null;
+              const out = isOut(p, k);
               return (
                 <circle
                   key={`${k}-${p.day}`}
                   cx={x(i)}
                   cy={y(v)}
-                  r={hover === i ? 4.5 : k === LIBERO ? 4 : 3.5}
-                  fill={colorOf(k)}
-                  stroke="var(--surface)"
-                  strokeWidth={2}
+                  r={hover === i ? 4.5 : k === LIBERO ? 4 : out ? 3 : 3.5}
+                  fill={out ? "var(--surface)" : colorOf(k)}
+                  stroke={out ? colorOf(k) : "var(--surface)"}
+                  strokeWidth={out ? 1.5 : 2}
                 />
               );
             }),
@@ -191,17 +198,24 @@ export function HistoryChart({ points }: { points: HistoryPoint[] }) {
         >
           <div className="mb-1 text-faint">{shortDay(hp.day)}</div>
           {[LIBERO, ...sites.filter((s) => !hidden.has(s) && hp.prices[s] != null)]
-            .sort((a, b) => (a === LIBERO ? -1 : b === LIBERO ? 1 : hp.prices[a] - hp.prices[b]))
-            .map((k) => (
-              <div key={k} className="flex items-center justify-between gap-3 py-px">
-                <span className="inline-flex min-w-0 items-center gap-1.5 text-muted">
-                  <span className={`w-3 shrink-0 rounded-full ${k === LIBERO ? "h-[3px]" : "h-[2px]"}`} style={{ background: colorOf(k) }} />
-                  <span className="truncate">{k === LIBERO ? "ליברו" : siteName(k)}</span>
-                </span>
-                <span className={`shrink-0 tabular ${k === LIBERO ? "font-semibold text-fg" : "text-fg"}`}>{ils(valueOf(hp, k))}</span>
-              </div>
-            ))}
-          {sites.some((s) => !hidden.has(s) && hp.prices[s] == null) && <div className="mt-1 text-[11px] text-faint">אתרים בלי מחיר ביום הזה: לא במלאי</div>}
+            // Libero first, then in-stock sites by price, then sold-out ones by price.
+            .sort((a, b) =>
+              a === LIBERO ? -1 : b === LIBERO ? 1 : Number(isOut(hp, a)) - Number(isOut(hp, b)) || hp.prices[a] - hp.prices[b],
+            )
+            .map((k) => {
+              const out = isOut(hp, k);
+              return (
+                <div key={k} className="flex items-center justify-between gap-3 py-px">
+                  <span className={`inline-flex min-w-0 items-center gap-1.5 ${out ? "text-faint" : "text-muted"}`}>
+                    <span className={`w-3 shrink-0 rounded-full ${k === LIBERO ? "h-[3px]" : "h-[2px]"} ${out ? "opacity-50" : ""}`} style={{ background: colorOf(k) }} />
+                    <span className="truncate">{k === LIBERO ? "ליברו" : siteName(k)}</span>
+                    {out && <span className="shrink-0 text-[11px]">· אזל</span>}
+                  </span>
+                  <span className={`shrink-0 tabular ${k === LIBERO ? "font-semibold text-fg" : out ? "text-faint" : "text-fg"}`}>{ils(valueOf(hp, k))}</span>
+                </div>
+              );
+            })}
+          {sites.some((s) => !hidden.has(s) && hp.prices[s] == null) && <div className="mt-1 text-[11px] text-faint">אתרים בלי מחיר ביום הזה: המוצר לא נמצא באתר</div>}
         </div>
       )}
     </div>

@@ -161,7 +161,10 @@ export interface HistoryPoint {
   day: string;
   libero: number;
   min: number | null;
+  /** Every site's price that day, sold out or not. */
   prices: Record<string, number>;
+  /** Sites whose price that day was for an out-of-stock listing. */
+  out: string[];
 }
 
 /** Daily Libero vs competitor prices for one product (the chart in the product drawer). */
@@ -177,6 +180,7 @@ export async function getHistory(productId: number, days = 120): Promise<History
     day: r.day,
     libero: r.liberoPrice,
     min: r.minPrice,
-    prices: Object.fromEntries(Object.entries(r.prices).filter(([, v]) => v.st).map(([k, v]) => [k, v.p])),
+    prices: Object.fromEntries(Object.entries(r.prices).map(([k, v]) => [k, v.p])),
+    out: Object.entries(r.prices).filter(([, v]) => !v.st).map(([k]) => k),
   }));
 }
