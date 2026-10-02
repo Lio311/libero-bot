@@ -22,8 +22,14 @@
   --same-soft: #efede9;
   --unmatched: #8a8579;
   --unmatched-soft: #f3f1ed;
-  --chart-libero: #9a3412;
-  --chart-market: #2a78d6;
+  /* One fixed colour per competitor site (validated categorical order; colour follows the site, never its rank). */
+  --site-mist: #2a78d6;
+  --site-molecule: #eb6834;
+  --site-lolaray: #1baf7a;
+  --site-perfumecenter: #eda100;
+  --site-kolboyehuda: #e87ba4;
+  --site-odem: #008300;
+  --site-novopharm: #4a3aa7;
 
   --p1: #0b6b3a;
   --p1-soft: #e3f3ea;
@@ -69,8 +75,13 @@
     --same-soft: #22211f;
     --unmatched: #8d887e;
     --unmatched-soft: #1c1b19;
-    --chart-libero: #d95926;
-    --chart-market: #3987e5;
+    --site-mist: #3987e5;
+    --site-molecule: #d95926;
+    --site-lolaray: #199e70;
+    --site-perfumecenter: #c98500;
+    --site-kolboyehuda: #d55181;
+    --site-odem: #008300;
+    --site-novopharm: #9085e9;
 
     --p1: #5fd49a;
     --p1-soft: #11271b;

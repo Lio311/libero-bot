@@ -30,24 +30,21 @@ export function useDismiss(open: boolean, onClose: () => void, ref: React.RefObj
 }
 
 export function SearchField({ value, onChange, className = "" }: { value: string; onChange: (v: string) => void; className?: string }) {
+  // RTL: text starts on the right, the magnifier (or the clear button once there's text) sits on the left.
   return (
     <label
       className={`relative flex h-9 items-center rounded-[10px] border border-border bg-surface transition-colors focus-within:border-accent hover:border-border-strong ${className}`}
     >
-      <svg className="pointer-events-none absolute start-3 size-3.5 text-faint" viewBox="0 0 16 16" fill="none" aria-hidden>
-        <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.6" />
-        <path d="m10.5 10.5 3 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      </svg>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="חיפוש מוצר, מותג או ברקוד"
         aria-label="חיפוש מוצר, מותג או ברקוד"
         enterKeyHint="search"
-        dir="auto"
-        className="size-full min-w-0 bg-transparent ps-8 pe-3 text-[16px] outline-none placeholder:text-faint sm:text-[13px]"
+        dir="rtl"
+        className="size-full min-w-0 bg-transparent ps-3 pe-9 text-right text-[16px] outline-none placeholder:text-faint sm:text-[13px]"
       />
-      {value && (
+      {value ? (
         <button
           type="button"
           onClick={() => onChange("")}
@@ -58,6 +55,11 @@ export function SearchField({ value, onChange, className = "" }: { value: string
             <path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         </button>
+      ) : (
+        <svg className="pointer-events-none absolute end-3 size-3.5 text-faint" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.6" />
+          <path d="m10.5 10.5 3 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
       )}
     </label>
   );

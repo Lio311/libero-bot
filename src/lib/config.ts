@@ -21,13 +21,13 @@ export function verdictFor(gap: number | null): Verdict {
 }
 
 export const SOURCES = {
-  mist: { name: "Mist", he: "מיסט", url: "https://mist.co.il", color: "#7c3aed" },
-  molecule: { name: "Molecule", he: "מולקול", url: "https://molecule-perfume.co.il", color: "#0891b2" },
-  lolaray: { name: "Lola Ray", he: "לולה ריי", url: "https://lolaray.co.il", color: "#db2777" },
-  perfumecenter: { name: "Perfume Center", he: "פרפיום סנטר", url: "https://perfumecenter.co.il", color: "#ea580c" },
-  kolboyehuda: { name: "Kolbo Yehuda", he: "כלבו יהודה", url: "https://kolboyehuda.co.il", color: "#2563eb" },
-  odem: { name: "Odem", he: "אודם", url: "https://www.odemc.co.il", color: "#dc2626" },
-  novopharm: { name: "Novo Pharm", he: "נובו פארם", url: "https://www.novo-pharm.co.il", color: "#16a34a" },
+  mist: { name: "Mist", he: "מיסט", url: "https://mist.co.il", color: "var(--site-mist)" },
+  molecule: { name: "Molecule", he: "מולקול", url: "https://molecule-perfume.co.il", color: "var(--site-molecule)" },
+  lolaray: { name: "Lola Ray", he: "לולה ריי", url: "https://lolaray.co.il", color: "var(--site-lolaray)" },
+  perfumecenter: { name: "Perfume Center", he: "פרפיום סנטר", url: "https://perfumecenter.co.il", color: "var(--site-perfumecenter)" },
+  kolboyehuda: { name: "Kolbo Yehuda", he: "כלבו יהודה", url: "https://kolboyehuda.co.il", color: "var(--site-kolboyehuda)" },
+  odem: { name: "Odem", he: "אודם", url: "https://www.odemc.co.il", color: "var(--site-odem)" },
+  novopharm: { name: "Novo Pharm", he: "נובו פארם", url: "https://www.novo-pharm.co.il", color: "var(--site-novopharm)" },
 } as const;
 
 export type SourceKey = keyof typeof SOURCES;
