@@ -1,15 +1,16 @@
 # liberoBot
 
-השוואת מחירים יומית: כל מוצר שבמלאי ב-[libero-il.co.il](https://libero-il.co.il) מושווה מול 7 אתרי בשמים מתחרים, ומסווג ל-3 קטגוריות: **ליברו יקרים יותר / ליברו זולים יותר / מחיר זהה** (פער של עד ₪20 לכל כיוון, מול המתחרה הזול ביותר שיש לו במלאי). מייל סיכום ב-08:00 ודשבורד מוגן בקוד.
+השוואת מחירים יומית: כל מוצר שבמלאי ב-[libero-il.co.il](https://libero-il.co.il) מושווה מול 26 אתרי בשמים מתחרים, ומסווג ל-3 קטגוריות: **ליברו יקרים יותר / ליברו זולים יותר / מחיר זהה** (פער של עד ₪20 לכל כיוון, מול המתחרה הזול ביותר שיש לו במלאי). מייל סיכום ב-08:00 ודשבורד מוגן בקוד.
 
 אפיון מלא: [SPEC.md](SPEC.md) · ממצאי בדיקת האתרים: [PROBE.md](PROBE.md)
 
 ## איך זה עובד
 
 ```
-03:00  GitHub Actions: Nightly price scan  (scraper/run.ts, ~15 דק')
+03:00  GitHub Actions: Nightly price scan  (scraper/run.ts, ~25 דק')
        1. ליברו: WooCommerce REST → מוצרים במלאי (בלי מיני/דוגמיות/מארזים/נלווים)
-       2. 7 מתחרים במקביל: Shopify /products.json · WooCommerce Store API · Konimbo HTML
+       2. 26 מתחרים במקביל: Shopify /products.json · WooCommerce Store API · Konimbo HTML
+          · Super-Pharm (Hybris HTML) · Magento Idus HTML · SFCC grid · Jonathan (דפי מוצר)
        3. התאמה: ברקוד (מאומת לפי נפח+טסטר) ← אחרת שם + נפח + ריכוז
        4. Neon: offers + snapshot יומי לכל מוצר
        5. אתר שנכשל → מייל התראה מיידי (המחיר האחרון שלו נשמר עד 3 ימים, מסומן "לא עדכני")
@@ -18,7 +19,7 @@
        Vercel: הדשבורד (Next.js) קורא את ה-snapshot האחרון
 ```
 
-KSP לא נכלל: חוסם גישה אוטומטית ל-API של המוצרים (403 גם מדפדפן אמיתי), והפרויקט לא משתמש בשירותי סריקה בתשלום.
+KSP ו-April לא נכללים: חוסמים גישה אוטומטית (403 / אתגר Cloudflare), והפרויקט לא משתמש בשירותי סריקה בתשלום. individualperfumes.com, laperfume.co.il, almapharm.co.il ו-perfumery.co.il לא פעילים (הדומיין לא קיים / פג). פירוט ב-[PROBE.md](PROBE.md).
 
 ## הגדרה חד-פעמית
 
@@ -57,7 +58,7 @@ GitHub → Actions → **Morning email** → Run workflow → `force` לשליח
 ```bash
 npm install
 cp .env.example .env.local   # ולמלא
-npm run fetch-cache           # מוריד את כל הקטלוגים ל-data/cache (פעם אחת, ~15 דק')
+npm run fetch-cache           # מוריד את כל הקטלוגים ל-data/cache (פעם אחת, ~25 דק')
 npx tsx scraper/tools/match-eval.ts --sample=30   # איכות ההתאמות על הנתונים השמורים
 npm run scrape -- --cache --no-email              # כל הצינור מול ה-DB, בלי לגשת לאתרים
 npx tsx scraper/digest.ts --force --dry            # תצוגה מקדימה של המייל → /dev/email

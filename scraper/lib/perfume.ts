@@ -33,10 +33,16 @@ export function clean(s: string): string {
 
 const ML = /(\d{1,4}(?:[.,]\d{1,2})?)\s*(?:ml\b|m\.l\b|m\b|מ"ל|מ''ל|מ'ל|מל(?![֐-׿])|מיליליטר|מ\s"ל)/g;
 
+/** Unit before the number, as some Hebrew titles have it: 'מ"ל 100' (Mashbir). Only used when no size reads the usual way. */
+const ML_REVERSED = /(?:מ"ל|מ''ל)\s*(\d{1,4})(?![\d.,])/g;
+
 function parseMl(t: string): number | null {
-  const sizes = [...t.matchAll(ML)].map((m) => Number(m[1].replace(",", ".")));
-  const valid = sizes.filter((n) => n >= 1 && n <= 1000);
-  return valid.length ? valid[0] : null;
+  for (const re of [ML, ML_REVERSED]) {
+    const sizes = [...t.matchAll(re)].map((m) => Number(m[1].replace(",", ".")));
+    const valid = sizes.filter((n) => n >= 1 && n <= 1000);
+    if (valid.length) return valid[0];
+  }
+  return null;
 }
 
 // Order matters: the most specific phrase wins (extrait before parfum, eau de parfum before parfum).
@@ -58,13 +64,14 @@ function parseConc(t: string): Concentration | null {
 }
 
 const TESTER = /tester|טסטר/;
+const INSPIRED = /(?:(?<![֐-׿])(?:בהשראת|בהשראה|בהשראתו)(?![֐-׿])|\binspired by\b|\bdupe of\b).*$/;
 const REFILL = /refill|ריפיל|(?<![֐-׿])מילוי(?![֐-׿])/;
 
 /** Whole Hebrew words only: "סט" must not fire inside "דאסט" (Dust) or "ויאל" inside "רויאל" (Royal). */
 const heWords = (...ws: string[]) => `(?<![\\u0590-\\u05ff])(?:${ws.join("|")})(?![\\u0590-\\u05ff])`;
 const EXCLUDE: [string, RegExp][] = [
   ["set", new RegExp(`${heWords("מארז", "ומארז", "סט", "ערכת", "ערכה")}|gift set|\\bset\\b|\\bkit\\b|coffret|\\+\\s*(?:edp |edt )?\\d+\\s*(?:ml|מ"ל|מל)`)],
-  ["sample", new RegExp(`${heWords("דוגמית", "דוגמא", "דוגמה", "ויאל", "דקאנט", "מיני", "טרבל", "מיניאטורה")}|\\bsamples?\\b|\\bvial\\b|\\bdecant\\b|\\bmini\\b|\\btravel\\b`)],
+  ["sample", new RegExp(`${heWords("דוגמית", "דוגמא", "דוגמה", "ויאל", "דקאנט", "דקאנטים", "דיקנט", "דיקנטים", "מיני", "טרבל", "מיניאטורה")}|\\bsamples?\\b|\\bvial\\b|\\bdecants?\\b|\\bmini\\b|\\btravel\\b`)],
   ["body", new RegExp(`${heWords("גוף", "לגוף", "שיער", "לשיער", "דאודורנט", "לושן", "קרם", "סבון", "שמן", "מבשם", "נר", "מפיץ", "באלם", "מסקרה", "שפתון", "איפור", "פאונדיישן", "תחליב")}|ג'ל רחצה|ספריי לבית|תרסיס לבית|אפטר שייב|\\bbody\\b|\\bhair\\b|\\bdeo(?:dorant)?\\b|\\blotion\\b|\\bcream\\b|\\bshower\\b|\\bsoap\\b|\\boil\\b|\\bcandle\\b|\\bdiffuser\\b|room spray|after shave|\\bbalm\\b|\\blipstick\\b|\\bmakeup\\b|\\bfoundation\\b`)],
 ];
 
@@ -105,8 +112,12 @@ export function parseTitle(raw: string): ParsedTitle {
   const refill = REFILL.test(t);
   const excluded = EXCLUDE.find(([, re]) => re.test(t))?.[0] ?? null;
 
+  // Dupe stores: "Wardian By Paris Corner בהשראת Miracle Lancôme". The part after "inspired by"
+  // names someone else's perfume, so it never feeds the name tokens.
   const body = t
+    .replace(INSPIRED, " ")
     .replace(ML, " ")
+    .replace(ML_REVERSED, " ")
     .replace(/\d+(?:[.,]\d+)?\s*(?:oz|fl\.?\s*oz)\b/g, " ")
     .replace(/eau de parfum|eau de toilette|eau de cologne|extrait de parfum|או דה פרפיום|או דה טואלט|אקסטרייט דה פרפיום/g, " ")
     .replace(/\b[a-z](?:\.[a-z])+\.?/g, " ") // e.d.p / a.d.p style abbreviations

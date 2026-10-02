@@ -1,11 +1,14 @@
 import * as cheerio from "cheerio";
 import type { SourceKey } from "../../src/lib/config";
 import { barcodeOf, getHtml, jitter, parseShekels } from "../lib/http";
+import { parseTitle } from "../lib/perfume";
 import type { CompetitorItem, Source } from "../types";
 
 // Konimbo (Israeli store platform): server-rendered category pages, 30 items per page, ?page=N.
 // Each card carries data-item-code (barcode), data-brand-title, the title, prices and a
 // hidden stock_state. Requests need a same-site Referer or Konimbo serves a redirect stub.
+// Some stores leave the size out of the title (My Perfume) but show a price per 100 ml whose
+// var-quantity attribute is the bottle size; it is used when price / unit price × 100 agrees.
 
 const MAX_PAGES = 260;
 
@@ -39,9 +42,16 @@ export function konimboSource(key: SourceKey, base: string, categories: string[]
           cards.each((_, el) => {
             const card = $(el);
             const id = card.attr("id")!.replace("item_id_", "");
-            const title = card.find("h3.title").first().text().replace(/\s+/g, " ").trim();
-            const price = parseShekels(card.find("p.price").first().text());
+            let title = card.find("h3.title").first().text().replace(/\s+/g, " ").trim();
+            const price = parseShekels(card.find("p.price, span.price").first().text());
             if (!title || !price) return;
+            if (parseTitle(title).ml == null) {
+              const unit = card.find(".data_record_price").first();
+              const ml = /מ"ל|ml/i.test(card.find(".data_record_unit").first().text())
+                ? mlFromUnitPrice(price, Number(unit.text().trim()), Number(unit.attr("var-quantity")))
+                : null;
+              if (ml) title += ` ${ml} מ"ל`;
+            }
             const href = card.find("a[href*='/items/']").first().attr("href")?.trim() ?? `/items/${id}`;
             byId.set(id, {
               source: key,
@@ -51,7 +61,7 @@ export function konimboSource(key: SourceKey, base: string, categories: string[]
               brand: card.attr("data-brand-title")?.trim() || null,
               barcode: barcodeOf(card.attr("data-item-code")),
               price,
-              regularPrice: parseShekels(card.find("p.origin_price").first().text()),
+              regularPrice: parseShekels(card.find(".origin_price").first().text()),
               inStock:
                 stock === "icon"
                   ? card.find(".sold_out_icon").length === 0
@@ -66,4 +76,9 @@ export function konimboSource(key: SourceKey, base: string, categories: string[]
       return { items: [...byId.values()], warnings };
     },
   };
+}
+
+function mlFromUnitPrice(price: number, per100: number, quantity: number): number | null {
+  if (!(per100 > 0) || !(quantity >= 1 && quantity <= 1000)) return null;
+  return Math.abs((price / per100) * 100 - quantity) <= quantity * 0.02 ? quantity : null;
 }

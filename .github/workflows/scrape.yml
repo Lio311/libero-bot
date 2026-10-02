@@ -2,12 +2,12 @@ name: Nightly price scan
 
 on:
   schedule:
-    # 01:00 UTC = 03:00/04:00 Israel (winter/summer). Takes ~15 minutes; done long before the 08:00 email.
+    # 01:00 UTC = 03:00/04:00 Israel (winter/summer). Takes ~25 minutes; done long before the 08:00 email.
     - cron: "0 1 * * *"
   workflow_dispatch:
     inputs:
       only:
-        description: "Comma-separated sites (mist,molecule,lolaray,perfumecenter,kolboyehuda,odem,novopharm). Empty = all."
+        description: "Comma-separated site keys from SOURCES in src/lib/config.ts (e.g. mist,odem,superpharm). Empty = all."
         required: false
 
 concurrency:

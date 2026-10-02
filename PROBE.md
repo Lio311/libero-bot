@@ -17,3 +17,34 @@
 - שמות אצל מתחרים בפורמטים שונים (עברית בלבד ב-Mist: "טסטר - ג'וי אינטנס אדפ לאישה 90 מ"ל - כריסטיאן דיור"; דו-לשוני בליברו) → ברקוד = התאמה ראשונה מהירה, ואז שם+ml+ריכוז.
 - הבדיקות רצו מ-IP ביתי. GitHub Actions רץ מ-IP של דאטה-סנטר — ייבדק בהרצה הראשונה ב-CI (בעיקר odem עם Cloudflare).
 - אין Actor מוכן ל-KSP ב-Apify.
+
+# Probe 2 — 24 אתרים נוספים (2026-10-02)
+
+| אתר | מפתח | פלטפורמה | שיטה | הערות |
+|---|---|---|---|---|
+| shop.super-pharm.co.il | superpharm | SAP Hybris | HTML קטגוריית בשמים `/cosmetics/perfumes/c/20110000?page=N` (מ-0, 30 לעמוד, ~2MB לעמוד) | `data-ean`, נפח בכרטיס, `data-oos`, מחיר מבצע `data-discountPrice`. ה-API של Constructor.io לא מחזיר נפח |
+| myperfume.co.il | myperfume | Konimbo | כמו odem | אין נפח בשם → נפח = מחיר ÷ מחיר ל-100 מ"ל × 100 (רק כשיוצא מספר שלם) |
+| callperfume.co.il | callperfume | WooCommerce | Store API + וריאציות | ~10.5K מוצרים (כולל קוסמטיקה) |
+| perfumex.co.il | perfumex | Konimbo | כמו odem | |
+| beautyshopmotagim.co.il | motagim | WooCommerce | Store API | |
+| perfumeclub.co.il | perfumeclub | WooCommerce | Store API + וריאציות | כל המוצרים variable (נפח/ריכוז כווריאציה) |
+| blendo.co.il | blendo | WooCommerce | Store API | חנות דיופים ("בהשראת"). נפח וריכוז במאפייני המוצר; החלק שאחרי "בהשראת" לא משמש להתאמה |
+| oligarch.co.il | oligarch | Shopify | `/products.json` | שמות בעברית בלבד, דיקנטים 2/5/10 מ"ל |
+| jonathan.co.il | jonathan | Magento 1 | דפי קטגוריה + דף מוצר לכל פריט (3 במקביל) | בכרטיס רק שם הבושם; נפח מ-select בדף המוצר, ברקוד ומלאי מ-JSON-LD |
+| lovenmour.co.il | lovenmour | Shopify | `/products.json` | ~8.5K מוצרים, כולל דיקנטים |
+| perfumeil.co.il | perfumeil | Konimbo | כמו odem | |
+| lilit.co.il | lilit | Magento 2 (Idus) | HTML `?p=N&product_list_limit=36` | GraphQL חסום ב-Cloudflare, דפי הקטגוריה פתוחים. ברקוד בשם קובץ התמונה |
+| chozen.co.il | chozen | Shopify | קולקציה `perfumes` בלבד | חנות אופנה |
+| maryshop.co.il | maryshop | WooCommerce | Store API | |
+| beyondskin.co.il | beyondskin | Magento 2 (Idus) | כמו lilit | |
+| glam42.co.il | glam42 | Shopify | `/products.json` | כולל קוסמטיקה |
+| mashbir.co.il → 365mashbir.co.il | mashbir | Shopify | קולקציות `byshvm-klly` + `top-perfumes-for-men-1` | חנות כלבו (15K+ מוצרים); לפעמים נפח הפוך: `מ"ל 100` |
+| onlys.co.il | onlys | Salesforce Commerce Cloud | `Search-UpdateGrid?cgid=PERFUME&start=N&sz=100` | ברקוד בנתיב התמונה |
+| cosmetic-club.co.il | cosmeticclub | WooCommerce | Store API + וריאציות | ~12.8K מוצרים |
+| april.co.il | — | Magento + Cloudflare | ❌ | 403 "Just a moment" גם בדף הבית → **חסום לאוטומציה** |
+| individualperfumes.com | — | — | ❌ | הדומיין לא קיים (DNS) |
+| laperfume.co.il | — | — | ❌ | הדומיין לא קיים (DNS) |
+| almapharm.co.il | — | — | ❌ | הדומיין לא קיים (DNS) |
+| perfumery.co.il | — | — | ❌ | דומיין שפג ("Expired DNS Hosting") |
+
+- WooCommerce: מוצר variable מוחלף בווריאציות שלו (`?type=variation`), כי המחיר של האב הוא רק הזול מביניהן. חל גם על lolaray / perfumecenter / kolboyehuda.

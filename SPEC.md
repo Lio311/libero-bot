@@ -11,6 +11,10 @@
 ## מתחרים
 molecule-perfume.co.il · lolaray.co.il · perfumecenter.co.il · novo-pharm.co.il · mist.co.il · odemc.co.il · **kolboyehuda.co.il** (נוסף מהמחקר)
 
+נוספו (2026-10-02): shop.super-pharm.co.il · myperfume.co.il · callperfume.co.il · perfumex.co.il · beautyshopmotagim.co.il · perfumeclub.co.il · blendo.co.il · oligarch.co.il · jonathan.co.il · lovenmour.co.il · perfumeil.co.il · lilit.co.il · chozen.co.il · maryshop.co.il · beyondskin.co.il · glam42.co.il · 365mashbir.co.il · onlys.co.il · cosmetic-club.co.il
+
+לא נוספו: april.co.il (Cloudflare חוסם), individualperfumes.com · laperfume.co.il · almapharm.co.il (הדומיין לא קיים), perfumery.co.il (דומיין שפג)
+
 **KSP הוסר**: חוסם גישה אוטומטית (ראה PROBE.md), ולא נמצא ב-Zap. העדפה קבועה: בלי Apify / שירותי סריקה בתשלום.
 
 ## התאמת מוצרים
