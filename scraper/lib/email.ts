@@ -137,7 +137,7 @@ export function renderDigest(d: DigestData) {
         <div style="font-size:11px;color:${C.faint};margin-top:16px;line-height:1.6">אתרים: ${d.sourceStatus.map((s) => `${esc(s.name)} ${s.ok ? "✓" : "✗"}`).join(" · ")}${failed.length ? ` · אתרים שנכשלו מחושבים לפי המחיר האחרון שנקרא` : ""}</div>
       </td></tr>`);
 
-  const subject = `ליברו · ${d.counts.pricier} יקרים · ${d.counts.cheaper} זולים · ${d.counts.same} זהים${failed.length ? " · ⚠ " + failed.map((f) => f.name).join(", ") : ""}`;
+  const subject = `ליברו · ${d.counts.pricier} יקרים · ${d.counts.cheaper} זולים · ${d.counts.same} זהים${failed.length ? ` · ⚠ ${failed.length === 1 ? "אתר אחד נכשל" : `${failed.length} אתרים נכשלו`}` : ""}`;
   return { subject, html };
 }
 
