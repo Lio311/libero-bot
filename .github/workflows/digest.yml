@@ -1,0 +1,42 @@
+name: Morning email (08:00 Israel)
+
+on:
+  schedule:
+    # GitHub cron is UTC and Israel moves between UTC+2 and UTC+3, so two slots fire and the job
+    # itself sends once the Israel clock reads 07:45+ and nothing was sent today.
+    # :47 rather than :00 because GitHub delays top-of-the-hour jobs the most.
+    - cron: "47 4 * * *"
+    - cron: "47 5 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Send now, even if already sent today"
+        type: boolean
+        default: false
+
+concurrency:
+  group: digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Send the daily summary
+        run: npm run digest -- ${{ inputs.force && '--force' || '' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
+          DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}

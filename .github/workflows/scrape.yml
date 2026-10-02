@@ -1,0 +1,41 @@
+name: Nightly price scan
+
+on:
+  schedule:
+    # 01:00 UTC = 03:00/04:00 Israel (winter/summer). Takes ~15 minutes; done long before the 08:00 email.
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Comma-separated sites (mist,molecule,lolaray,perfumecenter,kolboyehuda,odem,novopharm). Empty = all."
+        required: false
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Scan Libero + competitors, store today's comparison
+        run: npm run scrape -- ${{ inputs.only && format('--only={0}', inputs.only) || '' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          WC_URL: ${{ secrets.WC_URL }}
+          WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
+          WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
+          DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
