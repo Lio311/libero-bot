@@ -24,11 +24,11 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: "name", label: "שם (א-ת)" },
 ];
 
-const TABS: { value: Verdict; label: string; hint: string }[] = [
+const TABS: { value: Verdict; label: string; short?: string; hint: string }[] = [
   { value: "pricier", label: "ליברו יקרים יותר", hint: `יותר מ-₪${SAME_PRICE_BAND} מעל הזול` },
   { value: "cheaper", label: "ליברו זולים יותר", hint: `יותר מ-₪${SAME_PRICE_BAND} מתחת לזול` },
   { value: "same", label: "מחיר זהה", hint: `פער של עד ₪${SAME_PRICE_BAND}` },
-  { value: "unmatched", label: "לא נמצא אצל מתחרים", hint: "אין התאמה במלאי" },
+  { value: "unmatched", label: "לא נמצא אצל מתחרים", short: "ללא מתחרים", hint: "אין התאמה במלאי" },
 ];
 
 /** Libero categories worth filtering by (the store files most products under several). */
@@ -324,11 +324,11 @@ export function Dashboard({ data }: { data: DashboardData }) {
       </header>
 
       <main className="mx-auto max-w-[1240px] px-4 pb-16 sm:px-6">
-        <section className="pt-8 sm:pt-10">
-          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.03em] sm:text-[36px]">
+        <section className="pt-6 sm:pt-10">
+          <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.03em] sm:text-[36px]">
             ליברו מול השוק. <span className="text-muted">איפה אתה יקר, ואיפה זול.</span>
           </h1>
-          <p className="mt-2 max-w-2xl text-[14px] text-muted">
+          <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-muted sm:text-[14px]">
             {data.day ? (
               <>
                 {total.toLocaleString("en-US")} מוצרים במלאי נבדקו מול {SOURCE_KEYS.length} אתרים · {dayLabel(data.day)}
@@ -339,7 +339,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
             )}
           </p>
 
-          <div role="tablist" aria-label="קטגוריה" className="mt-6 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          <div role="tablist" aria-label="קטגוריה" className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-4">
             {TABS.map((t) => (
               <VerdictCard
                 key={t.value}
@@ -350,6 +350,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
                   setOpenId(null);
                 }}
                 label={t.label}
+                short={t.short}
                 hint={t.hint}
                 count={counts.c[t.value]}
                 prev={counts.prev?.[t.value]}
@@ -470,6 +471,7 @@ function VerdictCard({
   active,
   onClick,
   label,
+  short,
   hint,
   count,
   prev,
@@ -478,6 +480,8 @@ function VerdictCard({
   active: boolean;
   onClick: () => void;
   label: string;
+  /** Phone label when the full one would wrap in a half-width card. */
+  short?: string;
   hint: string;
   count: number;
   prev?: number;
@@ -490,17 +494,24 @@ function VerdictCard({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`relative rounded-2xl border p-4 text-start transition-[border-color,box-shadow,scale] duration-150 active:scale-[0.98] sm:p-5 ${
+      className={`relative min-w-0 rounded-2xl border p-3.5 text-start transition-[border-color,box-shadow,scale] duration-150 active:scale-[0.98] sm:p-5 ${
         active ? "border-transparent shadow-[var(--shadow-lift)]" : "border-border bg-surface hover:border-border-strong"
       }`}
       style={active ? { background: tone.bg, boxShadow: `inset 0 0 0 1.5px ${tone.fg}, var(--shadow-lift)` } : undefined}
     >
-      <div className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: tone.fg }}>
-        <span className="size-2 rounded-full" style={{ background: tone.fg }} />
-        {label}
+      <div className="flex items-start gap-2 text-[13px] font-semibold leading-snug" style={{ color: tone.fg }}>
+        <span className="mt-[5px] size-2 shrink-0 rounded-full" style={{ background: tone.fg }} />
+        {short ? (
+          <>
+            <span className="sm:hidden">{short}</span>
+            <span className="hidden sm:inline">{label}</span>
+          </>
+        ) : (
+          label
+        )}
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-[30px] font-semibold leading-none tracking-[-0.03em] tabular sm:text-[34px]">{count.toLocaleString("en-US")}</span>
+        <span className="text-[28px] font-semibold leading-none tracking-[-0.03em] tabular sm:text-[34px]">{count.toLocaleString("en-US")}</span>
         {delta != null && delta !== 0 && (
           <span className="text-[12px] font-medium tabular text-muted" dir="ltr">
             {delta > 0 ? `+${delta}` : `−${Math.abs(delta)}`}

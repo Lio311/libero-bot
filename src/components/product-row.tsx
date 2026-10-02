@@ -62,7 +62,7 @@ export const ProductRow = memo(function ProductRow({
         <div className="flex min-w-0 items-start gap-3">
           <Thumb src={p.image} />
           <div className="min-w-0 flex-1">
-            <div dir="auto" className="line-clamp-2 text-[14px] font-medium leading-snug text-fg">
+            <div dir="auto" className="line-clamp-3 break-words text-[14px] font-medium leading-snug text-fg lg:line-clamp-2">
               {p.name}
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] text-muted">
@@ -87,16 +87,31 @@ export const ProductRow = memo(function ProductRow({
           </div>
         </div>
 
-        {/* Mobile: prices in one line under the name */}
+        {/* Mobile: prices under the name, the site on its own line so nothing wraps mid-phrase */}
         <div className="mt-2.5 flex items-center justify-between gap-3 ps-[52px] lg:hidden">
-          <div className="min-w-0 flex-1 text-[13px] tabular text-muted">
-            <span className="font-semibold text-fg">{ils(p.price)}</span>
-            {ref && (
-              <>
-                {" "}
-                מול <span className="font-semibold text-fg">{ils(ref.price)}</span> · {siteName(ref.source)}
-              </>
-            )}
+          <div className="min-w-0 flex-1 tabular">
+            <div className="whitespace-nowrap text-[14px] text-muted">
+              <span className="font-semibold text-fg">{ils(p.price)}</span>
+              {ref && (
+                <>
+                  {" "}
+                  <span className="text-[12px]">מול</span> <span className="font-semibold text-fg">{ils(ref.price)}</span>
+                </>
+              )}
+            </div>
+            <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12px] text-muted">
+              {ref ? (
+                <>
+                  <span className="size-1.5 shrink-0 rounded-full" style={{ background: siteColor(ref.source) }} />
+                  <span className="truncate">
+                    {siteName(ref.source)}
+                    {ref.stale && <span className="text-faint"> · לא עדכני</span>}
+                  </span>
+                </>
+              ) : (
+                <span className="text-faint">{p.offers.length ? "אזל אצל כולם" : "לא נמצא אצל מתחרים"}</span>
+              )}
+            </div>
           </div>
           {gap != null && <GapPill gap={gap} gapPct={gapPct} tone={tone} />}
         </div>
@@ -163,7 +178,8 @@ function Detail({ e, onReject, onIgnore }: { e: Evaluated; onReject: (productId:
   }, [p.id]);
 
   return (
-    <div className="grid gap-6 px-4 pb-5 pt-1 sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:ps-[68px]">
+    // minmax(0,1fr) on phones too: an implicit `auto` column grows to the longest nowrap title.
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 px-4 pb-5 pt-1 sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:ps-[68px]">
       <section aria-label="מחירים אצל מתחרים">
         <h3 className="mb-2 text-[12px] font-semibold tracking-[0.04em] text-faint">אצל המתחרים</h3>
         {p.offers.length === 0 ? (
@@ -180,14 +196,14 @@ function Detail({ e, onReject, onIgnore }: { e: Evaluated; onReject: (productId:
             href={p.url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-8 items-center gap-1 rounded-full border border-border bg-surface px-3 text-[12px] font-medium text-fg transition-colors hover:border-border-strong"
+            className="inline-flex h-10 items-center gap-1 rounded-full border border-border bg-surface px-4 text-[13px] font-medium text-fg transition-colors hover:border-border-strong lg:h-8 lg:px-3 lg:text-[12px]"
           >
             לעמוד המוצר בליברו ↗
           </a>
           <button
             type="button"
             onClick={() => onIgnore(p.id, !p.ignored)}
-            className="inline-flex h-8 items-center rounded-full px-3 text-[12px] font-medium text-muted transition-colors hover:bg-surface hover:text-fg"
+            className="inline-flex h-10 items-center rounded-full px-3 text-[13px] font-medium text-muted transition-colors hover:bg-surface hover:text-fg lg:h-8 lg:text-[12px]"
           >
             {p.ignored ? "החזר למעקב" : "הסתר מוצר מהמעקב"}
           </button>
@@ -207,48 +223,63 @@ function OfferLine({ o, liberoPrice, isRef, onReject }: { o: OfferView; liberoPr
   const [confirm, setConfirm] = useState(false);
   const diff = liberoPrice - o.price;
   return (
-    <li className={`flex items-start gap-3 px-3 py-2.5 ${o.inStock ? "" : "opacity-60"}`}>
-      <span className="mt-1.5 size-2 shrink-0 rounded-full" style={{ background: siteColor(o.source) }} />
+    <li className="flex items-start gap-2.5 px-3 py-2.5">
+      <span className={`mt-[7px] size-2 shrink-0 rounded-full ${o.inStock ? "" : "opacity-50"}`} style={{ background: siteColor(o.source) }} />
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="text-[13px] font-semibold">{siteName(o.source)}</span>
-          <span className="text-[14px] font-semibold tabular">{ils(o.price)}</span>
+        {/* Site + price on the start side, Libero's difference pinned to the end */}
+        <div className={`flex items-baseline justify-between gap-3 ${o.inStock ? "" : "opacity-60"}`}>
+          <div className="flex min-w-0 items-baseline gap-2">
+            <span className="truncate text-[13px] font-semibold">{siteName(o.source)}</span>
+            <span className="shrink-0 text-[14px] font-semibold tabular">{ils(o.price)}</span>
+          </div>
           {o.inStock && (
-            <span className="text-[12px] tabular" style={{ color: diff > 20 ? "var(--pricier)" : diff < -20 ? "var(--cheaper)" : "var(--muted)" }}>
+            <span className="shrink-0 whitespace-nowrap text-[12px] tabular" style={{ color: diff > 20 ? "var(--pricier)" : diff < -20 ? "var(--cheaper)" : "var(--muted)" }}>
               ליברו <bdi dir="ltr">{signedIls(diff)}</bdi>
             </span>
           )}
-          {isRef && <Badge tone="accent">הזול</Badge>}
-          {!o.inStock && <Badge>אזל במלאי</Badge>}
-          {o.stale && <Badge>לא עדכני</Badge>}
         </div>
-        <a href={o.url} target="_blank" rel="noreferrer" dir="auto" className="mt-0.5 block truncate text-[12px] text-muted underline-offset-2 hover:text-fg hover:underline">
+        {(isRef || !o.inStock || o.stale) && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {isRef && <Badge tone="accent">הזול</Badge>}
+            {!o.inStock && <Badge>אזל במלאי</Badge>}
+            {o.stale && <Badge>לא עדכני</Badge>}
+          </div>
+        )}
+        <a
+          href={o.url}
+          target="_blank"
+          rel="noreferrer"
+          dir="auto"
+          className={`mt-1 line-clamp-2 break-words text-[12px] leading-snug text-muted underline-offset-2 hover:text-fg hover:underline ${o.inStock ? "" : "opacity-60"}`}
+        >
           {o.title}
         </a>
-        <div className="mt-0.5 text-[11px] text-faint">
-          {o.method === "barcode" ? "התאמה לפי ברקוד" : "התאמה לפי שם + נפח + ריכוז"}
-          {o.concAssumed && " · האתר לא ציין ריכוז"}
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <span className="text-[11px] text-faint">
+            {o.method === "barcode" ? "התאמה לפי ברקוד" : "התאמה לפי שם + נפח + ריכוז"}
+            {o.concAssumed && " · האתר לא ציין ריכוז"}
+          </span>
+          {confirm ? (
+            <span className="-me-1 flex shrink-0 items-center gap-1">
+              <button type="button" onClick={onReject} className="h-8 rounded-full bg-pricier px-3 text-[12px] font-medium text-white">
+                כן, לא אותו מוצר
+              </button>
+              <button type="button" onClick={() => setConfirm(false)} className="h-8 rounded-full px-2.5 text-[12px] text-muted hover:text-fg">
+                ביטול
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirm(true)}
+              className="-me-2 h-8 shrink-0 rounded-full px-2.5 text-[12px] text-faint transition-colors hover:bg-surface-2 hover:text-fg"
+              title="סמן שזו לא אותה התאמה. המערכת לא תתאים את המוצר הזה שוב."
+            >
+              התאמה שגויה?
+            </button>
+          )}
         </div>
       </div>
-      {confirm ? (
-        <span className="flex shrink-0 items-center gap-1">
-          <button type="button" onClick={onReject} className="h-7 rounded-full bg-pricier px-2.5 text-[12px] font-medium text-white">
-            כן, לא אותו מוצר
-          </button>
-          <button type="button" onClick={() => setConfirm(false)} className="h-7 rounded-full px-2 text-[12px] text-muted hover:text-fg">
-            ביטול
-          </button>
-        </span>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setConfirm(true)}
-          className="h-7 shrink-0 rounded-full px-2.5 text-[12px] text-faint transition-colors hover:bg-surface-2 hover:text-fg"
-          title="סמן שזו לא אותה התאמה. המערכת לא תתאים את המוצר הזה שוב."
-        >
-          התאמה שגויה?
-        </button>
-      )}
     </li>
   );
 }

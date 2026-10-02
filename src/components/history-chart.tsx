@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { SOURCE_KEYS } from "@/lib/config";
 import type { HistoryPoint } from "@/lib/data";
 import { ils } from "@/lib/format";
@@ -35,9 +35,11 @@ export function HistoryChart({ points }: { points: HistoryPoint[] }) {
   const [hover, setHover] = useState<number | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
+  // Measure before paint so a phone never flashes the 560px default wider than its card.
+  useLayoutEffect(() => {
     const el = wrap.current;
     if (!el) return;
+    setWidth(Math.max(260, Math.round(el.clientWidth)));
     const ro = new ResizeObserver(([e]) => setWidth(Math.max(260, Math.round(e.contentRect.width))));
     ro.observe(el);
     return () => ro.disconnect();
@@ -131,6 +133,7 @@ export function HistoryChart({ points }: { points: HistoryPoint[] }) {
             .filter((s) => last.prices[s] != null)
             .map((s) => `, ${siteName(s)} ${ils(last.prices[s])}`)
             .join("")}`}
+          onPointerDown={onMove}
           onPointerMove={onMove}
           onPointerLeave={() => setHover(null)}
           className="block touch-pan-y"
@@ -183,19 +186,19 @@ export function HistoryChart({ points }: { points: HistoryPoint[] }) {
       </div>
       {hp && (
         <div
-          className="pointer-events-none absolute top-12 z-10 min-w-[170px] rounded-lg border border-border bg-surface px-3 py-2 text-[12px] shadow-[var(--shadow-lift)]"
-          style={x(hover!) > width / 2 ? { left: Math.max(0, x(hover!) - 190) } : { left: x(hover!) + 12 }}
+          className="pointer-events-none absolute top-12 z-10 w-[188px] rounded-lg border border-border bg-surface px-3 py-2 text-[12px] shadow-[var(--shadow-lift)]"
+          style={{ left: x(hover!) > width / 2 ? Math.max(0, x(hover!) - 200) : Math.min(width - 188, x(hover!) + 12) }}
         >
           <div className="mb-1 text-faint">{shortDay(hp.day)}</div>
           {[LIBERO, ...sites.filter((s) => !hidden.has(s) && hp.prices[s] != null)]
             .sort((a, b) => (a === LIBERO ? -1 : b === LIBERO ? 1 : hp.prices[a] - hp.prices[b]))
             .map((k) => (
-              <div key={k} className="flex items-center justify-between gap-4 py-px">
-                <span className="inline-flex items-center gap-1.5 text-muted">
-                  <span className={`w-3 rounded-full ${k === LIBERO ? "h-[3px]" : "h-[2px]"}`} style={{ background: colorOf(k) }} />
-                  {k === LIBERO ? "ליברו" : siteName(k)}
+              <div key={k} className="flex items-center justify-between gap-3 py-px">
+                <span className="inline-flex min-w-0 items-center gap-1.5 text-muted">
+                  <span className={`w-3 shrink-0 rounded-full ${k === LIBERO ? "h-[3px]" : "h-[2px]"}`} style={{ background: colorOf(k) }} />
+                  <span className="truncate">{k === LIBERO ? "ליברו" : siteName(k)}</span>
                 </span>
-                <span className={`tabular ${k === LIBERO ? "font-semibold text-fg" : "text-fg"}`}>{ils(valueOf(hp, k))}</span>
+                <span className={`shrink-0 tabular ${k === LIBERO ? "font-semibold text-fg" : "text-fg"}`}>{ils(valueOf(hp, k))}</span>
               </div>
             ))}
           {sites.some((s) => !hidden.has(s) && hp.prices[s] == null) && <div className="mt-1 text-[11px] text-faint">אתרים בלי מחיר ביום הזה: לא במלאי</div>}
