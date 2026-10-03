@@ -80,7 +80,7 @@ export const ProductRow = memo(function ProductRow({
                 ))}
               {p.tester && <Badge>טסטר</Badge>}
               {p.onSale && <Badge tone="accent">מבצע</Badge>}
-              {p.stockQty != null && p.stockQty <= 2 && <Badge>מלאי {p.stockQty}</Badge>}
+              {p.stockQty != null && <Badge>מלאי {p.stockQty}</Badge>}
               {e.changed && <Badge tone="accent">השתנה מאתמול</Badge>}
               {p.ignored && <Badge>מוסתר</Badge>}
             </div>

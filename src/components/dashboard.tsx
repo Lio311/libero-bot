@@ -21,7 +21,7 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: "priceDesc", label: "מחיר ליברו: גבוה לנמוך" },
   { value: "priceAsc", label: "מחיר ליברו: נמוך לגבוה" },
   { value: "sites", label: "הכי הרבה מתחרים" },
-  { value: "stock", label: "מלאי אצלי: גבוה לנמוך" },
+  { value: "stock", label: "מלאי בליברו: מהגבוה לנמוך" },
   { value: "name", label: "שם (א-ת)" },
 ];
 
@@ -100,7 +100,7 @@ function sortRows(rows: Evaluated[], sort: Sort) {
     priceDesc: (a, b) => b.p.price - a.p.price,
     priceAsc: (a, b) => a.p.price - b.p.price,
     sites: (a, b) => b.live.length - a.live.length || Math.abs(b.gap ?? 0) - Math.abs(a.gap ?? 0),
-    stock: (a, b) => (b.p.stockQty ?? -1) - (a.p.stockQty ?? -1),
+    stock: (a, b) => (b.p.stockQty ?? -1) - (a.p.stockQty ?? -1) || Math.abs(b.gap ?? 0) - Math.abs(a.gap ?? 0),
     name: (a, b) => a.p.name.localeCompare(b.p.name, "he"),
   };
   return [...rows].sort(by[sort]);
@@ -379,6 +379,9 @@ export function Dashboard({ data }: { data: DashboardData }) {
             <div className="lg:hidden">
               <FilterButton label="סינון" count={activeCount} open={sheet} onClick={() => setSheet(true)} />
             </div>
+          </div>
+          <div className="mt-2 lg:hidden">
+            <Select label="מיון" value={sort} onChange={setSort} options={SORTS} className="w-full" />
           </div>
         </div>
 
