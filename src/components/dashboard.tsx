@@ -14,7 +14,7 @@ import { BottomSheet, EASE, FilterButton, FilterSection, FiltersPopover, SearchF
 
 const PAGE = 50;
 
-type Sort = "gap" | "gapPct" | "priceDesc" | "priceAsc" | "sites" | "stock" | "name";
+type Sort = "gap" | "gapPct" | "priceDesc" | "priceAsc" | "sites" | "stock" | "stockAsc" | "name";
 const SORTS: { value: Sort; label: string }[] = [
   { value: "gap", label: "פער גדול (₪)" },
   { value: "gapPct", label: "פער גדול (%)" },
@@ -22,6 +22,7 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: "priceAsc", label: "מחיר ליברו: נמוך לגבוה" },
   { value: "sites", label: "הכי הרבה מתחרים" },
   { value: "stock", label: "מלאי בליברו: מהגבוה לנמוך" },
+  { value: "stockAsc", label: "מלאי בליברו: מהנמוך לגבוה" },
   { value: "name", label: "שם (א-ת)" },
 ];
 
@@ -101,6 +102,7 @@ function sortRows(rows: Evaluated[], sort: Sort) {
     priceAsc: (a, b) => a.p.price - b.p.price,
     sites: (a, b) => b.live.length - a.live.length || Math.abs(b.gap ?? 0) - Math.abs(a.gap ?? 0),
     stock: (a, b) => (b.p.stockQty ?? -1) - (a.p.stockQty ?? -1) || Math.abs(b.gap ?? 0) - Math.abs(a.gap ?? 0),
+    stockAsc: (a, b) => (a.p.stockQty ?? Infinity) - (b.p.stockQty ?? Infinity) || Math.abs(b.gap ?? 0) - Math.abs(a.gap ?? 0),
     name: (a, b) => a.p.name.localeCompare(b.p.name, "he"),
   };
   return [...rows].sort(by[sort]);
