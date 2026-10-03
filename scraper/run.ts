@@ -9,6 +9,7 @@ import { closeDb, getDb } from "../src/db/client";
 import { offers, products, scrapeRuns, snapshots, type SnapshotPrice } from "../src/db/schema";
 import { israelDay, SOURCES, STALE_AFTER_DAYS, verdictFor, type SourceKey } from "../src/lib/config";
 import { sendFailureAlert } from "./lib/email";
+import { broadcastPush } from "../src/lib/push";
 import { fetchLiberoProducts, type LiberoProduct } from "./lib/libero";
 import { detectBrand, matchAll } from "./lib/match";
 import { parseTitle } from "./lib/perfume";
@@ -238,6 +239,16 @@ async function main() {
       log("failure alert sent");
     } catch (e) {
       log(`failure alert not sent: ${(e as Error).message}`);
+    }
+    try {
+      const push = await broadcastPush({
+        title: "liberoBot · בעיה בסריקה",
+        body: `${failures.map((f) => SOURCES[f.source].name).join(", ")} נכשלו בסריקה. הפרטים בדשבורד.`,
+        tag: `libero-alert-${day}`,
+      });
+      log(`failure push: ${push.sent} sent, ${push.failed} failed`);
+    } catch {
+      log("failure push not sent; check push configuration and database");
     }
   }
   return ok.size > 0;

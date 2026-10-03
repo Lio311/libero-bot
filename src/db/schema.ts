@@ -140,5 +140,13 @@ export const emailLog = pgTable(
 );
 
 export type Product = typeof products.$inferSelect;
+/** Each browser opts in separately; endpoint is a private delivery capability. */
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  endpoint: text("endpoint").primaryKey(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  lastDigestDay: date("last_digest_day"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 export type Offer = typeof offers.$inferSelect;
 export type Snapshot = typeof snapshots.$inferSelect;

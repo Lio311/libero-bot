@@ -7,6 +7,7 @@ import { closeDb, getDb } from "../src/db/client";
 import { emailLog, offers, products, scrapeRuns, snapshots, type Snapshot } from "../src/db/schema";
 import { israelDay, SOURCE_KEYS, SOURCES, VERDICT_LABEL, type SourceKey, type Verdict } from "../src/lib/config";
 import { sendDigest, type DigestChange, type DigestExample } from "./lib/email";
+import { broadcastPush, pushConfigured } from "../src/lib/push";
 
 // The 08:00 summary email. GitHub cron runs in UTC and Israel switches between UTC+2 and
 // UTC+3, so the workflow fires at 04:47 and 05:47 UTC and this job sends only once the
@@ -29,11 +30,13 @@ async function main() {
     .split(":")
     .map(Number);
   const minutes = hh * 60 + mm;
+  let emailSent = false;
 
   if (!force) {
     if (minutes < 7 * 60 + 45 || minutes > 13 * 60) return log(`Israel time is ${hh}:${String(mm).padStart(2, "0")}; the digest goes out from 07:45`);
     const [sent] = await db.select().from(emailLog).where(and(eq(emailLog.kind, "digest"), eq(emailLog.day, today))).limit(1);
-    if (sent) return log(`already sent today: ${sent.subject}`);
+    emailSent = !!sent;
+    if (sent && !pushConfigured()) return log(`already sent today: ${sent.subject}`);
   }
 
   const [latest] = await db.select({ day: snapshots.day }).from(snapshots).orderBy(desc(snapshots.day)).limit(1);
@@ -133,8 +136,21 @@ async function main() {
     writeFileSync("digest-preview.html", html);
     return log(`dry: ${subject} → digest-preview.html`);
   }
-  const subject = await sendDigest(db, today, data);
-  log(`digest sent: ${subject}`);
+  let emailError: unknown;
+  if (!emailSent) {
+    try {
+      const subject = await sendDigest(db, today, data);
+      log(`digest sent: ${subject}`);
+    } catch (error) { emailError = error; }
+  }
+  const push = await broadcastPush({
+    title: "liberoBot · סיכום הבוקר",
+    body: `${counts.pricier} יקרים יותר · ${counts.cheaper} זולים יותר · ${counts.same} במחיר זהה. ${changes.length} שינויים.${day !== today ? ` הנתונים מ-${day}; הסריקה של היום לא הסתיימה.` : ""}`,
+    tag: `libero-digest-${today}`,
+  }, force ? undefined : today);
+  log(`push: ${push.sent} sent, ${push.failed} failed`);
+  if (emailError) throw emailError;
+  if (push.failed) throw new Error("Some mobile notifications failed; rerun to retry remaining devices");
 }
 
 main()

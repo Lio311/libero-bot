@@ -8,6 +8,7 @@ import type { DashboardData, ProductView } from "@/lib/data";
 import { CONC_LABEL, dayLabel, ils, timeLabel } from "@/lib/format";
 import { Chip, RangeSlider, Segmented, Select, Toggle, buildHistogram } from "./controls";
 import { Logo } from "./logo";
+import { PushSettings } from "./push-settings";
 import { GRID, ProductRow, VERDICT_TONE, type Evaluated } from "./product-row";
 import { BottomSheet, EASE, FilterButton, FilterSection, FiltersPopover, SearchField, StatusPill, siteName } from "./ui";
 
@@ -339,6 +340,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
             )}
           </p>
 
+          <PushSettings />
           <div role="tablist" aria-label="קטגוריה" className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-4">
             {TABS.map((t) => (
               <VerdictCard
