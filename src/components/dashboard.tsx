@@ -320,7 +320,10 @@ export function Dashboard({ data }: { data: DashboardData }) {
       <header className="sticky top-0 z-30 border-b border-border/70 bg-bg/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-[1240px] items-center justify-between px-4 sm:px-6">
           <Logo />
-          <StatusPill status={data.status} lastRun={data.lastRun} now={data.now} />
+          <div className="flex items-center gap-2">
+            <StatusPill status={data.status} lastRun={data.lastRun} now={data.now} />
+            <PushSettings />
+          </div>
         </div>
       </header>
 
@@ -340,7 +343,6 @@ export function Dashboard({ data }: { data: DashboardData }) {
             )}
           </p>
 
-          <PushSettings />
           <div role="tablist" aria-label="קטגוריה" className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 lg:grid-cols-4">
             {TABS.map((t) => (
               <VerdictCard
